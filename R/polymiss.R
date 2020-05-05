@@ -1,4 +1,8 @@
+#' @keywords internal
 #' @import vctrs
+#' @name polymiss
+NULL
+
 new_polymiss <- function(x = double(), miss = integer()) {
   vec_assert(miss, ptype = integer(), size=length(x))
   if(!all(miss %in% 1L:2L | is.na(miss))) stop("The `miss` field must contain integers between 1 and 2.")
@@ -64,6 +68,7 @@ vec_math.polymiss <- function (fn, x, ...) {
 # Standard boilerplate
 
 #' @export
+#' @method vec_arith polymiss
 vec_arith.polymiss <- function(op, x, y, ...) {
   UseMethod("vec_arith.polymiss", y)
 }
@@ -75,6 +80,7 @@ vec_arith.polymiss.default <- function(op, x, y, ...) {
 
 # todo: turn into polymiss w/ correct miss
 #' @export
-vec_arith.polymiss.polymiss <- function (op, x, y) {
+#' @method vec_arith.polymiss polymiss
+vec_arith.polymiss.polymiss <- function (op, x, y, ...) {
   vec_arith_base(op, rawdata(x), rawdata(y))
 }

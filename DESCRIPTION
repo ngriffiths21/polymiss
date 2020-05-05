@@ -16,4 +16,5 @@ Suggests:
     dplyr
 RoxygenNote: 7.1.0
 Imports: 
-    purrr
+    purrr,
+    vctrs

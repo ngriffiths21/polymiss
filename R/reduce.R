@@ -3,7 +3,7 @@ relev <- function (x) {
   x2 <- field(x, "x")
   miss <- field(x, "miss")
 
-  x2[!is.na(miss)]
+  rawdata(x[!is.na(miss)])
 }
 
 #' @export
