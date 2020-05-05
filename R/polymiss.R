@@ -1,9 +1,9 @@
 #' @import vctrs
 new_polymiss <- function(x = double(), miss = integer()) {
-  vec_assert(miss, ptype = integer())
-  if(!all(miss %in% 1L:3L)) stop("The `miss` field must contain integers between 1 and 3.")
+  vec_assert(miss, ptype = integer(), size=length(x))
+  if(!all(miss %in% 1L:2L | is.na(miss))) stop("The `miss` field must contain integers between 1 and 2.")
 
-  new_rcrd(list(x = x, miss = miss), class = "vctrs_polymiss")
+  new_rcrd(list(x = x, miss = miss), class = "polymiss")
 }
 
 #' @export
@@ -12,52 +12,69 @@ polymiss <- function(x = double(), miss = integer()) {
 }
 
 #' @export
-format.vctrs_polymiss <- function(x, ...) {
+format.polymiss <- function(x, ...) {
   x2 <- field(x, "x")
   miss <- field(x, "miss")
 
   dplyr::case_when(
     miss == 1 ~ as.character(x2),
     miss == 2 ~ "<UNK>",
-    miss == 3 ~ "<NONE>"
+    is.na(miss) ~ "<NONE>"
   )
 }
 
 #' @export
-vec_ptype2.vctrs_polymiss.vctrs_num_miss <- function(x, y, ...) polymiss()
+vec_ptype2.polymiss.polymiss <- function(x, y, ...) polymiss()
 #' @export
-vec_ptype2.vctrs_polymiss.double <- function(x, y, ...) double()
+vec_ptype2.polymiss.double <- function(x, y, ...) double()
 #' @export
-vec_ptype2.double.vctrs_polymiss <- function(x, y, ...) double()
+vec_ptype2.double.polymiss <- function(x, y, ...) double()
 
 #' @export
-vec_cast.vctrs_polymiss.vctrs_num_miss <- function(x, to, ...) x
+vec_cast.polymiss.polymiss <- function(x, to, ...) x
 #' @export
-vec_cast.vctrs_polymiss.double <- function(x, to, ...) {
+vec_cast.polymiss.double <- function(x, to, ...) {
   miss <- ifelse(is.na(x), 2L, 1L)
   polymiss(x, miss)
 }
 
 #' @export
-vec_cast.double.vctrs_polymiss <- function(x, to, ...) {
-  x2 <- field(x, "x")
-  miss <- field(x, "miss")
-
-  ifelse(miss == 1, x2, NA)
+as_polymiss <- function(x) {
+  vec_cast(x, polymiss())
 }
 
 #' @export
-relev <- function (x) {
+vec_cast.double.polymiss <- function(x, to, ...) {
+  as.double(rawdata(x))
+}
+
+rawdata <- function (x) {
   x2 <- field(x, "x")
   miss <- field(x, "miss")
 
-  x[miss != 3]
+  ifelse(miss == 1L, x2, NA)
+}
+
+# todo: turn into polymiss
+#' @export
+vec_math.polymiss <- function (fn, x, ...) {
+  vec_math_base(fn, rawdata(x), ...)
+}
+
+# Standard boilerplate
+
+#' @export
+vec_arith.polymiss <- function(op, x, y, ...) {
+  UseMethod("vec_arith.polymiss", y)
 }
 
 #' @export
-vec_math.vctrs_polymiss <- function(fn, x, ...) {
-  x2 <- relev(x)
-  x3 <- vec_cast(x2, double())
+vec_arith.polymiss.default <- function(op, x, y, ...) {
+  stop_incompatible_op(op, x, y)
+}
 
-  vec_math_base(fn, x3)
+# todo: turn into polymiss w/ correct miss
+#' @export
+vec_arith.polymiss.polymiss <- function (op, x, y) {
+  vec_arith_base(op, rawdata(x), rawdata(y))
 }

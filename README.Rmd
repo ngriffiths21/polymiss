@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The polymiss package provides a vector class, `vctrs_polymiss`, that allows for representing different types of missing values.
+The polymiss package provides a vector class, `polymiss`, that allows for representing different types of missing values.
 
 ## Installation
 
@@ -40,23 +40,23 @@ Currently missing value types are represented as integers:
 | ----   | ----         | ---                                      |
 | 1L     | Non-missing  | Known value                              |
 | 2L     | Unknown      | Missing, but a "true" value should exist |
-| 3L     | Non-existent | Missing, and no "true" value is possible |
+| NA     | Non-existent | Missing, and no "true" value is possible |
 
 To create a `polymiss()` vector:
 
 ```{r}
 library(polymiss)
-p1 <- polymiss(c(7, NA, NA), miss = c(1L, 2L, 3L))
+p1 <- polymiss(c(7, NA, NA), miss = c(1L, 2L, NA))
 p1
 ```
 
-Math will automatically discard non-existent values, but retain unknowns:
+To discard `<NONE>`, use `reduce()`:
 
 ```{r}
 sum(p1)
 
 p1[-2]
-sum(p1[-2])
+reduce(p1[-2], `+`)
 ```
 
 ## License
